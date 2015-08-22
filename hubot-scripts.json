@@ -1,5 +1,6 @@
 [
   "factoid.coffee",
   "github-pulls.coffee",
-  "jenkins.coffee"
+  "jenkins.coffee",
+  "meme_captain.coffee"
 ]
