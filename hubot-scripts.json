@@ -1,3 +1,4 @@
 [
-  "factoid.coffee"
+  "factoid.coffee",
+  "github-pulls.coffee"
 ]

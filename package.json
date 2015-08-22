@@ -5,6 +5,7 @@
   "author": "msound <mani.sound@gmail.com>",
   "description": "Employee #17",
   "dependencies": {
+    "githubot": "^1.0.0",
     "hubot": "^2.15.0",
     "hubot-diagnostics": "0.0.1",
     "hubot-google-images": "^0.2.1",
