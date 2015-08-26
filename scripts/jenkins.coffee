@@ -41,7 +41,7 @@ jenkinsBuildById = (msg) ->
 
 jenkinsBuild = (msg, buildWithEmptyParameters) ->
     url = process.env.HUBOT_JENKINS_URL
-    job = querystring.escape msg.match[1]
+    job = msg.match[1]
     params = msg.match[3]
     command = if buildWithEmptyParameters then "buildWithParameters" else "build"
     path = if params then "#{url}/job/#{job}/buildWithParameters?#{params}" else "#{url}/job/#{job}/#{command}"
@@ -216,7 +216,7 @@ jenkinsList = (msg) ->
             msg.send error
 
 module.exports = (robot) ->
-  robot.respond /j(?:enkins)? build ([\w\.\-_ ]+)(, (.+))?/i, (msg) ->
+  robot.respond /j(?:enkins)? build ([\w\.\-_ \/]+)(, (.+))?/i, (msg) ->
     jenkinsBuild(msg, false)
 
   robot.respond /j(?:enkins)? b (\d+)/i, (msg) ->
