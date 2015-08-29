@@ -10,8 +10,8 @@
 #   HUBOT_JIRA_PASSWORD
 #
 # Commands:
-#   hubot my jira username is <username>
-#   hubot what is my jira username
+#   hubot jira my username is <username>
+#   hubot jira what is my username
 #
 # Author:
 #   Mani Soundararajan
@@ -19,14 +19,14 @@
 
 module.exports = (robot) ->
 
-  robot.respond /my\s+jira\s+[user\s*name|login]+\s+is\s+(\w+)/i, (res) ->
+  robot.respond /jira\s+my\s+(?:user\s*name|login)+\s+is\s+(\w+)/i, (res) ->
     user = res.message.user
     jiraUsername = res.match[1]
     user.jiraUsername = jiraUsername
-    res.send "OK #{user.name}, your jira username is " + jiraUsername
+    res.send "OK #{user.name}, your JIRA username is " + jiraUsername
 
 
-  robot.respond /what\s+is\s+my\s+jira\s+[user\s*name|login]\?*/i, (res) ->
+  robot.respond /jira\s+what\s+is\s+my\s+(?:user\s*name|login)+\s*\?*/i, (res) ->
     jiraUsername = res.message.user.jiraUsername or false
     if jiraUsername
       res.send "#{res.message.user.name}, you are #{jiraUsername} on JIRA"
