@@ -20,7 +20,7 @@
 #   hubot jira get sprint
 #   hubot jira my issues
 #   hubot jira working <issue>
-#   hubot jira done <issue>
+#   hubot jira done <issue> [<time>]
 #   hubot jira log <issue> <time>
 #
 # Author:
@@ -111,16 +111,24 @@ module.exports = (robot) ->
       else
         msg.send "Error setting #{issue} to In Progress."
 
-  # Command: hubot jira done <issue>
-  robot.respond /jira\s+done\s+([a-zA-Z\-0-9]+)/i, (msg) ->
+  # Command: hubot jira done <issue> [<time>]
+  robot.respond /jira\s+done\s+([a-zA-Z\-0-9]+)\s*(.*)/i, (msg) ->
     issue = msg.match[1]
+    time = msg.match[2]
     transition = process.env.HUBOT_JIRA_TRANSITION_DONE
     unless transition
       msg.send "HUBOT_JIRA_TRANSITION_IN_DONE environment variable must be set."
       return
     setIssueTransition msg, issue, transition, (code) ->
       if code == 204
-        msg.send "OK, setting #{issue} to Done."
+        if time?
+          addIssueWorklog msg, issue, time, (code) ->
+            if code == 201
+              msg.send "OK, issue #{issue} marked as done, added #{time} to worklog."
+            else
+              msg.send "Issue #{issue} marked as done, but there was an error adding worklog."
+        else
+          msg.send "OK, setting #{issue} to Done."
       else
         msg.send "Error setting #{issue} to Done."
 
