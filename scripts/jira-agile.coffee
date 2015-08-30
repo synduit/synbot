@@ -40,7 +40,7 @@ module.exports = (robot) ->
   robot.respond /jira\s+what\s+is\s+my\s+(?:user\s*name|login)+\s*\?*/i, (msg) ->
     jiraUsername = msg.message.user.jiraUsername or false
     if jiraUsername
-      msg.send "#{res.message.user.name}, you are #{jiraUsername} on JIRA."
+      msg.send "#{msg.message.user.name}, you are #{jiraUsername} on JIRA."
     else
       msg.send "I don't know your JIRA username."
 
