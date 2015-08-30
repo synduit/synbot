@@ -6,14 +6,14 @@
 #
 # Configuration:
 #   HUBOT_JIRA_DOMAIN
-#   HUBOT_JIRA_USER
-#   HUBOT_JIRA_PASSWORD
 #   HUBOT_JIRA_TRANSITION_IN_PROGRESS
 #   HUBOT_JIRA_TRANSITION_DONE
+#   HUBOT_JIRA_SYMMETRIC_KEY
 #
 # Commands:
 #   hubot jira my username is <username>
 #   hubot jira what is my username
+#   hubot jira my password is <password>
 #   hubot jira set board <board>
 #   hubot jira get board
 #   hubot jira set sprint <sprint>
@@ -42,6 +42,17 @@ module.exports = (robot) ->
       msg.send "#{res.message.user.name}, you are #{jiraUsername} on JIRA."
     else
       msg.send "I don't know your JIRA username."
+
+  # Command: hubot jira my password is <password>
+  robot.respond /jira\s+my\s+password+\s+is\s+(.*)/i, (msg) ->
+    user = msg.message.user
+    password = msg.match[1]
+    encrypted_password = encryptPassword(password)
+    if !encrypted_password?
+      msg.send "There was an error encrypting you password."
+    else
+      user.jiraPassword = encrypted_password
+      msg.send "You password is safe with me."
 
   # Command: hubot jira set board <board>
   robot.respond /jira\s+set\s+board\s+(\d+)/i, (msg) ->
@@ -114,14 +125,11 @@ module.exports = (robot) ->
 
 # Get HTTP Basic Auth string
 getAuth = (msg) ->
-  username = process.env.HUBOT_JIRA_USER
-  password = process.env.HUBOT_JIRA_PASSWORD
-  unless username
-    msg.send "HUBOT_JIRA_USER environment variable must be set to a valid JIRA user's username."
+  username = msg.message.user.jiraUsername ? msg.message.user.name
+  unless msg.message.user.jiraPassword
+    msg.send "Please set your password by sending a private message."
     return
-  unless password
-    msg.send "HUBOT_JIRA_PASSWORD environment variable must be set to a valid JIRA user's password."
-    return
+  password = decryptPassword(msg.message.user.jiraPassword)
   auth = "Basic " + new Buffer(username + ":" + password).toString('base64')
   return auth
 
@@ -244,4 +252,32 @@ setIssueTransition = (msg, issue, transition, callback) ->
     .header('Content-Type', 'application/json')
     .post(JSON.stringify(body)) (err, res, body) ->
       callback(res.statusCode)
+
+# Encrypt password
+encryptPassword = (password) ->
+  crypto = require('crypto')
+  key = process.env.HUBOT_JIRA_SYMMETRIC_KEY
+  unless key
+    console.log("HUBOT_JIRA_SYMMETRIC_KEY environment variable must be set.")
+    return
+  key = new Buffer(key)
+  algo = 'aes256'
+  cipher = crypto.createCipher(algo, key)
+  from = 'utf8'
+  to = 'hex'
+  result = cipher.update(password, from, to) + cipher.final(to)
+
+# Decrypt password
+decryptPassword = (data) ->
+  crypto = require('crypto')
+  key = process.env.HUBOT_JIRA_SYMMETRIC_KEY
+  unless key
+    console.log("HUBOT_JIRA_SYMMETRIC_KEY environment variable must be set.")
+    return
+  key = new Buffer(key)
+  algo = 'aes256'
+  decipher = crypto.createDecipher(algo, key)
+  from = 'hex'
+  to = 'utf8'
+  result = decipher.update(data, from, to) + decipher.final(to)
 
