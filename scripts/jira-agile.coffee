@@ -12,6 +12,7 @@
 # Commands:
 #   hubot jira my username is <username>
 #   hubot jira what is my username
+#   hubot jira set board <board>
 #   hubot jira my issues
 #
 # Author:
@@ -34,6 +35,15 @@ module.exports = (robot) ->
       res.send "#{res.message.user.name}, you are #{jiraUsername} on JIRA"
     else
       res.send "I don't know your jira username"
+
+  # Command: hubot jira set board <board>
+  robot.respond /jira\s+set\s+board\s+(\d+)/i, (msg) ->
+    board = msg.match[1]
+    roomName = msg.envelope.room
+    rooms = robot.brain.get('rooms') or {}
+    rooms[roomName].board = board
+    robot.brain.set('rooms', rooms)
+    msg.send "OK, scrum board for room #{roomName} set to #{board}"
 
   # Command: hubot jira my issues
   robot.respond /jira\s+my\s+issues/i, (msg) ->
