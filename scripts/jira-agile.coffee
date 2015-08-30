@@ -21,6 +21,7 @@
 #   hubot jira my issues
 #   hubot jira working <issue>
 #   hubot jira done <issue>
+#   hubot jira log <issue> <time>
 #
 # Author:
 #   Mani Soundararajan
@@ -122,6 +123,16 @@ module.exports = (robot) ->
         msg.send "OK, setting #{issue} to Done."
       else
         msg.send "Error setting #{issue} to Done."
+
+  # Command: hubot jira log <issue> <time>
+  robot.respond /jira\s+log\s+([a-zA-Z\-0-9]+)\s+([a-zA-Z0-9]+)/i, (msg) ->
+    issue = msg.match[1]
+    time = msg.match[2]
+    addIssueWorklog msg, issue, time, (code) ->
+      if code == 201
+        msg.send "OK, adding #{time} to your worklog on #{issue}."
+      else
+        msg.send "Error adding worklog."
 
 # Get HTTP Basic Auth string
 getAuth = (msg) ->
@@ -247,6 +258,18 @@ setIssueTransition = (msg, issue, transition, callback) ->
   body =
     transition:
       id: transition
+  msg.http(url)
+    .header('Authorization', auth)
+    .header('Content-Type', 'application/json')
+    .post(JSON.stringify(body)) (err, res, body) ->
+      callback(res.statusCode)
+
+# Add Issue Worklog
+addIssueWorklog = (msg, issue, time, callback) ->
+  auth = getAuth(msg)
+  url = getJiraURL(msg, "issue/#{issue}/worklog")
+  body =
+    timeSpent: time
   msg.http(url)
     .header('Authorization', auth)
     .header('Content-Type', 'application/json')
