@@ -8,6 +8,7 @@
 #   HUBOT_JIRA_DOMAIN
 #   HUBOT_JIRA_USER
 #   HUBOT_JIRA_PASSWORD
+#   HUBOT_JIRA_TRANSITION_IN_PROGRESS
 #
 # Commands:
 #   hubot jira my username is <username>
@@ -17,6 +18,7 @@
 #   hubot jira set sprint <sprint>
 #   hubot jira get sprint
 #   hubot jira my issues
+#   hubot jira working <issue>
 #
 # Author:
 #   Mani Soundararajan
@@ -82,6 +84,19 @@ module.exports = (robot) ->
     getMyIssues msg, (issues) ->
       msg.send formatIssues issues
 
+  # Command: hubot jira working <issue>
+  robot.respond /jira\s+working\s+([a-zA-Z\-0-9]+)/i, (msg) ->
+    issue = msg.match[1]
+    transition = process.env.HUBOT_JIRA_TRANSITION_IN_PROGRESS
+    unless transition
+      msg.send "HUBOT_JIRA_TRANSITION_IN_PROGRESS environment variable must be set."
+      return
+    setIssueTransition msg, issue, transition, (code) ->
+      if code == 204
+        msg.send "OK, setting #{issue} to In Progress."
+      else
+        msg.send "Error setting #{issue} to In Progress."
+
 # Get HTTP Basic Auth string
 getAuth = (msg) ->
   username = process.env.HUBOT_JIRA_USER
@@ -95,14 +110,14 @@ getAuth = (msg) ->
   auth = "Basic " + new Buffer(username + ":" + password).toString('base64')
   return auth
 
-#getJiraURL() = (msg, resource) ->
-#  domain = process.env.HUBOT_JIRA_DOMAIN
-#  unless domain
-#    msg.send "HUBOT_JIRA_DOMAIN environment variable must be set to a valid <ORG>.atlassian.net domain."
-#    return
-#  apiURL = "https://" + domain + "/rest/api/2/" + resource
-#  return apiURL
-#
+# Get JIRA API URL
+getJiraURL = (msg, resource) ->
+  domain = process.env.HUBOT_JIRA_DOMAIN
+  unless domain
+    msg.send "HUBOT_JIRA_DOMAIN environment variable must be set to a valid <ORG>.atlassian.net domain."
+    return
+  apiURL = "https://" + domain + "/rest/api/2/" + resource
+  return apiURL
 
 # Get JIRA Agile API URL
 getAgileURL = (msg, resource) ->
@@ -201,4 +216,17 @@ formatIssues = (issues) ->
 # Format single issue
 formatIssue = (issue) ->
   issue.key + " " + issue.fields.parent.fields.summary + " :: " + issue.fields.summary + " (" + issue.fields.status.name + ")"
+
+# Set Issue Transition
+setIssueTransition = (msg, issue, transition, callback) ->
+  auth = getAuth(msg)
+  url = getJiraURL(msg, "issue/#{issue}/transitions")
+  body =
+    transition:
+      id: transition
+  msg.http(url)
+    .header('Authorization', auth)
+    .header('Content-Type', 'application/json')
+    .post(JSON.stringify(body)) (err, res, body) ->
+      callback(res.statusCode)
 
