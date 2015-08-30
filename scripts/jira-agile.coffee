@@ -79,8 +79,8 @@ module.exports = (robot) ->
 
   # Command: hubot jira my issues
   robot.respond /jira\s+my\s+issues/i, (msg) ->
-    getActiveSprint msg, (sprint) ->
-      msg.send "Current sprint is #{sprint}."
+    getMyIssues msg, (issues) ->
+      msg.send formatIssues issues
 
 # Get HTTP Basic Auth string
 getAuth = (msg) ->
@@ -119,7 +119,26 @@ getResource = (msg, url, params, auth, callback) ->
     .header('Authorization', auth)
     .query(params)
     .get() (err, res, body) ->
-      callback( err, JSON.parse(body) )
+      callback(err, JSON.parse(body))
+
+# Get Collection over HTTP
+getCollection = (msg, url, params, auth, key, result, callback) ->
+  if (!params.startAt?)
+    params.startAt = 0
+  msg.http(url)
+    .header('Authorization', auth)
+    .query(params)
+    .get() (err, res, body) ->
+      if err
+        callback(err, result)
+      else
+        json = JSON.parse(body)
+        result.push json[key]...
+        if json.startAt + json.maxResults < json.total
+          params.startAt += json.maxResults
+          getCollection(msg, url, params, auth, key, result, callback)
+        else
+          callback(err, result)
 
 # Get active sprint
 getActiveSprint = (msg, callback) ->
@@ -136,4 +155,50 @@ getActiveSprint = (msg, callback) ->
       return
     sprint = json.values[0].id
     callback(sprint)
+
+# Get my issues
+getMyIssues = (msg, callback) ->
+
+  auth = getAuth(msg)
+
+  roomName = msg.envelope.room
+  rooms = robot.brain.get('rooms') or {}
+
+  board = rooms[roomName].board if rooms[roomName]?
+  unless board
+    msg.send "Please set scrum board."
+    return
+
+  sprint = rooms[roomName].sprint if rooms[roomName]?
+  unless sprint
+    msg.send "Please set sprint."
+    return
+
+  jiraUsername = msg.message.user.jiraUsername ? msg.message.user.name
+
+  url = getAgileURL(msg, "board/#{board}/sprint/#{sprint}/issue")
+  params =
+    fields: "id,key,summary,issuetype,status,parent"
+    jql: "issuetype in subTaskIssueTypes() AND status in (\"In Progress\", \"To Do\") AND assignee in (#{jiraUsername})"
+
+  key = 'issues'
+  result = []
+  getCollection msg, url, params, auth, key, result, (err, issues) ->
+    if err
+      msg.send "Error getting issues from JIRA."
+      return
+    if issues.length <= 0
+      msg.send "There are no issues open for you in this sprint."
+      return
+    callback(issues)
+
+# Format issues
+formatIssues = (issues) ->
+  result = for issue in issues
+    formatIssue issue
+  result.join("\n")
+
+# Format single issue
+formatIssue = (issue) ->
+  issue.key + " " + issue.fields.parent.fields.summary + " :: " + issue.fields.summary + " (" + issue.fields.status.name + ")"
 
