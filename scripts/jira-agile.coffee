@@ -9,6 +9,7 @@
 #   HUBOT_JIRA_USER
 #   HUBOT_JIRA_PASSWORD
 #   HUBOT_JIRA_TRANSITION_IN_PROGRESS
+#   HUBOT_JIRA_TRANSITION_DONE
 #
 # Commands:
 #   hubot jira my username is <username>
@@ -19,6 +20,7 @@
 #   hubot jira get sprint
 #   hubot jira my issues
 #   hubot jira working <issue>
+#   hubot jira done <issue>
 #
 # Author:
 #   Mani Soundararajan
@@ -96,6 +98,19 @@ module.exports = (robot) ->
         msg.send "OK, setting #{issue} to In Progress."
       else
         msg.send "Error setting #{issue} to In Progress."
+
+  # Command: hubot jira done <issue>
+  robot.respond /jira\s+done\s+([a-zA-Z\-0-9]+)/i, (msg) ->
+    issue = msg.match[1]
+    transition = process.env.HUBOT_JIRA_TRANSITION_DONE
+    unless transition
+      msg.send "HUBOT_JIRA_TRANSITION_IN_DONE environment variable must be set."
+      return
+    setIssueTransition msg, issue, transition, (code) ->
+      if code == 204
+        msg.send "OK, setting #{issue} to Done."
+      else
+        msg.send "Error setting #{issue} to Done."
 
 # Get HTTP Basic Auth string
 getAuth = (msg) ->
