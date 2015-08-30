@@ -14,6 +14,8 @@
 #   hubot jira what is my username
 #   hubot jira set board <board>
 #   hubot jira get board
+#   hubot jira set sprint <sprint>
+#   hubot jira get sprint
 #   hubot jira my issues
 #
 # Author:
@@ -55,6 +57,25 @@ module.exports = (robot) ->
       msg.send "Scrum board for this room is #{board}."
     else
       msg.send "No board has been set for this room."
+
+  # Command: hubot jira set sprint <sprint>
+  robot.respond /jira\s+set\s+sprint\s+(\d+)/i, (msg) ->
+    sprint = msg.match[1]
+    roomName = msg.envelope.room
+    rooms = robot.brain.get('rooms') or {}
+    rooms[roomName].sprint = sprint
+    robot.brain.set('rooms', rooms)
+    msg.send "OK, sprint for room #{roomName} set to #{sprint}."
+
+  # Command: hubot jira get sprint
+  robot.respond /jira\s+get\s+sprint/i, (msg) ->
+    roomName = msg.envelope.room
+    rooms = robot.brain.get('rooms') or {}
+    sprint = rooms[roomName].sprint if rooms[roomName]?
+    if sprint
+      msg.send "Sprint for this room is #{sprint}."
+    else
+      msg.send "No sprint has been set for this room."
 
   # Command: hubot jira my issues
   robot.respond /jira\s+my\s+issues/i, (msg) ->
