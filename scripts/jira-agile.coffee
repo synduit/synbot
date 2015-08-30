@@ -60,6 +60,8 @@ module.exports = (robot) ->
     board = msg.match[1]
     roomName = msg.envelope.room
     rooms = robot.brain.get('rooms') or {}
+    if !rooms[roomName]?
+      rooms[roomName] = {}
     rooms[roomName].board = board
     robot.brain.set('rooms', rooms)
     msg.send "OK, scrum board for room #{roomName} set to #{board}."
@@ -79,6 +81,8 @@ module.exports = (robot) ->
     sprint = msg.match[1]
     roomName = msg.envelope.room
     rooms = robot.brain.get('rooms') or {}
+    if !rooms[roomName]?
+      rooms[roomName] = {}
     rooms[roomName].sprint = sprint
     robot.brain.set('rooms', rooms)
     msg.send "OK, sprint for room #{roomName} set to #{sprint}."
