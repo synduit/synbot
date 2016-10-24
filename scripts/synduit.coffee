@@ -28,6 +28,16 @@ module.exports = (robot) ->
       else
         msg.send res
 
+  # Command: hubot cancel <subdomain>
+  robot.respond /cancel\s+(\w+)/i, (msg) ->
+    subdomain = msg.match[1]
+    cancelUser msg, subdomain, (err, res) ->
+      if err
+        msg.send "Error canceling user"
+        console.log "Error canceling user from Synduit: " + res
+      else
+        msg.send subdomain + " is canceling"
+
 getUser = (msg, subdomain, callback) ->
   url = process.env.HUBOT_SYNDUIT_URL + "/v1/accounts/info?subdomain=" + subdomain
   msg.http(url)
@@ -41,3 +51,10 @@ getUser = (msg, subdomain, callback) ->
           "Name: " + data.fname + " " + data.lname + "\n" +
           "Email: " + data.mail
         callback(err, result)
+
+cancelUser = (msg, subdomain, callback) ->
+  url = process.env.HUBOT_SYNDUIT_URL + "/v1/accounts/cancel?subdomain=" + subdomain
+  msg.http(url)
+    .header('Authorization', process.env.HUBOT_SYNDUIT_TOKEN)
+    .post("") (err, res, body) ->
+      callback(err, res)
