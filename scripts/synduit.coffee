@@ -37,5 +37,7 @@ getUser = (msg, subdomain, callback) ->
         callback(err, res)
       else
         data = JSON.parse(body)
-        result = data.fname + " " + data.lname + " (" + data.mail + ")"
+        result = "Subdomain: " + subdomain + "\n" +
+          "Name: " + data.fname + " " + data.lname + "\n" +
+          "Email: " + data.mail
         callback(err, result)
