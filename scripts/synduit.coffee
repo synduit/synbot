@@ -34,9 +34,12 @@ module.exports = (robot) ->
     cancelUser msg, subdomain, (err, res) ->
       if err
         msg.send "Error canceling user"
-        console.log "Error canceling user from Synduit: " + res
+        console.log "Error canceling user from Synduit: " + res.statusCode
       else
-        msg.send subdomain + " is canceling"
+        if res.statusCode == 204
+          msg.send subdomain + " is canceling"
+        else
+          msg.send "Error canceling user from Synduit: " + res.statusCode
 
 getUser = (msg, subdomain, callback) ->
   url = process.env.HUBOT_SYNDUIT_URL + "/v1/accounts/info?subdomain=" + subdomain
