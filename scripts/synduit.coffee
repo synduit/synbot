@@ -59,5 +59,6 @@ cancelUser = (msg, subdomain, callback) ->
   url = process.env.HUBOT_SYNDUIT_URL + "/v1/accounts/cancel?subdomain=" + subdomain
   msg.http(url)
     .header('Authorization', process.env.HUBOT_SYNDUIT_TOKEN)
+    .header('Content-Type', 'application/json')
     .post("") (err, res, body) ->
       callback(err, res)
