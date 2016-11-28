@@ -19,7 +19,7 @@
 module.exports = (robot) ->
 
   # Command: hubot who is <subdomain>
-  robot.respond /who\s*is\s+(\w+)/i, (msg) ->
+  robot.respond /who\s*is\s+([\w\W]+)/i, (msg) ->
     subdomain = msg.match[1]
     getUser msg, subdomain, (err, res) ->
       if err
@@ -29,7 +29,7 @@ module.exports = (robot) ->
         msg.send res
 
   # Command: hubot cancel <subdomain>
-  robot.respond /cancel\s+(\w+)/i, (msg) ->
+  robot.respond /cancel\s+([\w\W]+)/i, (msg) ->
     subdomain = msg.match[1]
     cancelUser msg, subdomain, (err, res) ->
       if err
