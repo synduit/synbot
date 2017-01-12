@@ -33,6 +33,8 @@ module.exports = (robot) ->
       robot.logger.info ticket + "," + label + "," + user
       if label == "ci:certified"
         setSubtaskDone ticket, "Testing", user
+      else if label == "ci:reviewed"
+        setSubtaskDone ticket, "Code Review", user
 
     res.end "OK"
 
