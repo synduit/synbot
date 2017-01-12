@@ -35,6 +35,8 @@ module.exports = (robot) ->
         setSubtaskDone ticket, "Testing", user
       else if label == "ci:reviewed"
         setSubtaskDone ticket, "Code Review", user
+      else if label == "ci:accepted"
+        setSubtaskDone ticket, "Acceptance", user
 
     res.end "OK"
 
