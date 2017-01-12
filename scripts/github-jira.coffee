@@ -57,6 +57,14 @@ module.exports = (robot) ->
 
     res.end "OK"
 
+  # Command: hubot demo is done for <story>
+  robot.respond /demo\s+is\s+done\s+for\s+([A-Z0-9\-]+)/i, (msg) ->
+    ticket = msg.match[1]
+    user = msg.message.user.name
+    robot.logger.info ticket + ",Demo" + "," + user
+    setSubtaskDone ticket, "Demo", user
+    msg.send "OK, marking Demo as done."
+
 # Get HTTP Basic Auth string
 getAuth = () ->
   username = process.env.HUBOT_JIRA_USERNAME
