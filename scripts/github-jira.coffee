@@ -38,6 +38,23 @@ module.exports = (robot) ->
       else if label == "ci:accepted"
         setSubtaskDone ticket, "Acceptance", user
 
+    if data.action == "opened"
+      title = data.pull_request.title
+      matches = title.match(/^[A-Z0-9\-]+/g)
+      ticket = matches[0]
+      user = data.sender.login
+      robot.logger.info ticket + "," + data.action + "," + user
+      setSubtaskDone ticket, "Development", user
+
+    if data.action == "closed"
+      if data.pull_request.merged
+        title = data.pull_request.title
+        matches = title.match(/^[A-Z0-9\-]+/g)
+        ticket = matches[0]
+        user = data.sender.login
+        robot.logger.info ticket + "," + data.action + "," + user
+        setSubtaskDone ticket, "Merge", user
+
     res.end "OK"
 
 # Get HTTP Basic Auth string
