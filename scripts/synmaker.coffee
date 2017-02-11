@@ -43,6 +43,6 @@ getSpace = (msg, callback) ->
         for env in data.data
           space = env.capacity - env.app_count
           totalSpace += space
-          result += env.name + " " + space + "\n"
-        result += "Total " + totalSpace
+          result += env.name + " = " + space + "\n"
+        result += "Total = " + totalSpace
         callback(err, result)
