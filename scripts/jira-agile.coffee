@@ -22,6 +22,7 @@
 #   hubot jira working <issue>
 #   hubot jira done <issue> [<time>]
 #   hubot jira log <issue> <time>
+#   hubot create story <issue-summary>
 #
 # Author:
 #   Mani Soundararajan
@@ -145,6 +146,16 @@ module.exports = (robot) ->
         msg.send "OK, adding #{time} to your worklog on #{issue}."
       else
         msg.send "Error adding worklog."
+
+  # Command: hubot create story <issue summary>
+  robot.respond /create\s+story\s+([A-Z\' ']+)/i, (msg) ->
+    summary = msg.match[1]
+    createNewIssue msg, summary, (code) ->
+
+    if code == 201
+      msg.send "New story created in the project - DEPP"
+    else
+      msg.send "Something went wrong!!!"
 
 # Get HTTP Basic Auth string
 getAuth = (msg) ->
@@ -316,3 +327,24 @@ decryptPassword = (data) ->
   to = 'utf8'
   result = decipher.update(data, from, to) + decipher.final(to)
 
+  # Create a story
+createNewIssue = (msg, summary, callback) ->
+  auth = getAuth(msg)
+  url = getJiraURL(msg, "issue")
+  body = {
+    "fields": {
+      "project": {
+        "key": "DEP"
+      },
+      "summary": summary,
+      "issuetype": {
+        "name": "Story"
+      }
+    }
+  }
+
+  msg.http(url)
+    .header('Authorization', auth)
+    .header('Content-Type', 'application/json')
+    .post(JSON.stringify(body)) (err, res, body) ->
+      callback(res.statusCode)
