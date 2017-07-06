@@ -18,10 +18,13 @@
 #   hubot jira get board
 #   hubot jira set sprint <sprint>
 #   hubot jira get sprint
+#   hubot jira set key <key>
+#   hubot jira get key
 #   hubot jira my issues
 #   hubot jira working <issue>
 #   hubot jira done <issue> [<time>]
 #   hubot jira log <issue> <time>
+#   hubot create story <issue-summary>
 #
 # Author:
 #   Mani Soundararajan
@@ -97,6 +100,27 @@ module.exports = (robot) ->
     else
       msg.send "No sprint has been set for this room."
 
+  # Command: hubot jira set key <key>
+  robot.respond /jira\s+set\s+key\s+([A-Z]+)/i, (msg) ->
+    key = msg.match[1]
+    roomName = msg.envelope.room
+    rooms = robot.brain.get('rooms') or {}
+    if !rooms[roomName]?
+      rooms[roomName] = {}
+    rooms[roomName].key = key
+    robot.brain.set('rooms', rooms)
+    msg.send "OK, key for #{roomName} set to #{key}."
+
+  # Command: hubot jira get key
+  robot.respond /jira\s+get\s+key/i, (msg) ->
+    roomName = msg.envelope.room
+    rooms = robot.brain.get('rooms') or {}
+    key = rooms[roomName].key if rooms[roomName]?
+    if key
+      msg.send "Key for this room is #{key}."
+    else
+      msg.send "No key has been set for this room."
+
   # Command: hubot jira my issues
   robot.respond /jira\s+my\s+issues/i, (msg) ->
     getMyIssues msg, (issues) ->
@@ -145,6 +169,21 @@ module.exports = (robot) ->
         msg.send "OK, adding #{time} to your worklog on #{issue}."
       else
         msg.send "Error adding worklog."
+
+  # Command: hubot create story <issue summary>
+  robot.respond /create\s+story\s+[\'\"]*([^\'\"]+)[\'\"]*/i, (msg) ->
+    summary = msg.match[1]
+    roomName = msg.envelope.room
+    rooms = robot.brain.get('rooms') or {}
+    key = rooms[roomName].key if rooms[roomName]?
+    if !key
+      msg.send "Sorry, project key for this room has not been set."
+    else
+      createNewIssue msg, key, summary, (code, key) ->
+        if code == 201
+          msg.send "New story created : #{key}"
+        else
+          msg.send "Something went wrong!!!"
 
 # Get HTTP Basic Auth string
 getAuth = (msg) ->
@@ -316,3 +355,25 @@ decryptPassword = (data) ->
   to = 'utf8'
   result = decipher.update(data, from, to) + decipher.final(to)
 
+  # Create a story
+createNewIssue = (msg, key, summary, callback) ->
+  auth = getAuth(msg)
+  url = getJiraURL(msg, "issue")
+  body = {
+    "fields": {
+      "project": {
+        "key": key
+      },
+      "summary": summary,
+      "issuetype": {
+        "name": "Story"
+      }
+    }
+  }
+
+  msg.http(url)
+    .header('Authorization', auth)
+    .header('Content-Type', 'application/json')
+    .post(JSON.stringify(body)) (err, res, response_body) ->
+      data = JSON.parse(response_body)
+      callback(res.statusCode, data.key)
