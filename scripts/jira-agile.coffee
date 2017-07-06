@@ -150,9 +150,9 @@ module.exports = (robot) ->
   # Command: hubot create story <issue summary>
   robot.respond /create\s+story\s+([A-Z\' ']+)/i, (msg) ->
     summary = msg.match[1]
-    createNewIssue msg, summary, (code) ->
+    createNewIssue msg, summary, (code, key) ->
       if code == 201
-        msg.send "New story created in the project - DEPP"
+        msg.send "New story created : #{key}"
       else
         msg.send "Something went wrong!!!"
 
@@ -345,5 +345,6 @@ createNewIssue = (msg, summary, callback) ->
   msg.http(url)
     .header('Authorization', auth)
     .header('Content-Type', 'application/json')
-    .post(JSON.stringify(body)) (err, res, body) ->
-      callback(res.statusCode)
+    .post(JSON.stringify(body)) (err, res, response_body) ->
+      data = JSON.parse(response_body)
+      callback(res.statusCode, data.key)
