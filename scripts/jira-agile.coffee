@@ -18,6 +18,8 @@
 #   hubot jira get board
 #   hubot jira set sprint <sprint>
 #   hubot jira get sprint
+#   hubot jira set key <key>
+#   hubot jira get key
 #   hubot jira my issues
 #   hubot jira working <issue>
 #   hubot jira done <issue> [<time>]
@@ -97,6 +99,27 @@ module.exports = (robot) ->
       msg.send "Sprint for this room is #{sprint}."
     else
       msg.send "No sprint has been set for this room."
+
+  # Command: hubot jira set key <key>
+  robot.respond /jira\s+set\s+key\s+([A-Z]+)/i, (msg) ->
+    key = msg.match[1]
+    roomName = msg.envelope.room
+    rooms = robot.brain.get('rooms') or {}
+    if !rooms[roomName]?
+      rooms[roomName] = {}
+    rooms[roomName].key = key
+    robot.brain.set('rooms', rooms)
+    msg.send "OK, key for #{roomName} set to #{key}."
+
+  # Command: hubot jira get key
+  robot.respond /jira\s+get\s+key/i, (msg) ->
+    roomName = msg.envelope.room
+    rooms = robot.brain.get('rooms') or {}
+    key = rooms[roomName].key if rooms[roomName]?
+    if key
+      msg.send "Key for this room is #{key}."
+    else
+      msg.send "No key has been set for this room."
 
   # Command: hubot jira my issues
   robot.respond /jira\s+my\s+issues/i, (msg) ->
