@@ -171,7 +171,7 @@ module.exports = (robot) ->
         msg.send "Error adding worklog."
 
   # Command: hubot create story <issue summary>
-  robot.respond /create\s+story\s+([A-Z\' ']+)/i, (msg) ->
+  robot.respond /create\s+story\s+[\'\"]*([^\'\"]+)[\'\"]*/i, (msg) ->
     summary = msg.match[1]
     roomName = msg.envelope.room
     rooms = robot.brain.get('rooms') or {}
