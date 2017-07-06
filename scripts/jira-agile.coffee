@@ -151,11 +151,10 @@ module.exports = (robot) ->
   robot.respond /create\s+story\s+([A-Z\' ']+)/i, (msg) ->
     summary = msg.match[1]
     createNewIssue msg, summary, (code) ->
-
-    if code == 201
-      msg.send "New story created in the project - DEPP"
-    else
-      msg.send "Something went wrong!!!"
+      if code == 201
+        msg.send "New story created in the project - DEPP"
+      else
+        msg.send "Something went wrong!!!"
 
 # Get HTTP Basic Auth string
 getAuth = (msg) ->
