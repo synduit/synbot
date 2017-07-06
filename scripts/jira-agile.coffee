@@ -173,11 +173,17 @@ module.exports = (robot) ->
   # Command: hubot create story <issue summary>
   robot.respond /create\s+story\s+([A-Z\' ']+)/i, (msg) ->
     summary = msg.match[1]
-    createNewIssue msg, summary, (code, key) ->
-      if code == 201
-        msg.send "New story created : #{key}"
-      else
-        msg.send "Something went wrong!!!"
+    roomName = msg.envelope.room
+    rooms = robot.brain.get('rooms') or {}
+    key = rooms[roomName].key if rooms[roomName]?
+    if !key
+      msg.send "Sorry, project key for this room has not been set."
+    else
+      createNewIssue msg, key, summary, (code, key) ->
+        if code == 201
+          msg.send "New story created : #{key}"
+        else
+          msg.send "Something went wrong!!!"
 
 # Get HTTP Basic Auth string
 getAuth = (msg) ->
@@ -350,13 +356,13 @@ decryptPassword = (data) ->
   result = decipher.update(data, from, to) + decipher.final(to)
 
   # Create a story
-createNewIssue = (msg, summary, callback) ->
+createNewIssue = (msg, key, summary, callback) ->
   auth = getAuth(msg)
   url = getJiraURL(msg, "issue")
   body = {
     "fields": {
       "project": {
-        "key": "DEP"
+        "key": key
       },
       "summary": summary,
       "issuetype": {
