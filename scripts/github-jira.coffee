@@ -54,6 +54,7 @@ module.exports = (robot) ->
         user = data.sender.login
         robot.logger.info ticket + "," + data.action + "," + user
         setSubtaskDone ticket, "Merge", user
+        createNewDeployIssue title
 
     res.end "OK"
 
@@ -125,3 +126,25 @@ doTransitionDone = (ticket) ->
       robot.logger.error "Error setting " + ticket + " to Done"
     else
       robot.logger.info ticket + " has been marked as Done"
+
+# Create a new deploy issue
+createNewDeployIssue = (title) ->
+  auth = getAuth()
+  url = getJiraURL('issue')
+
+  data = {
+    "fields": {
+      "project": {
+        "key": "DEP"
+      },
+      "summary": title,
+      "issuetype": {
+        "name": "Story"
+      }
+    }
+  }
+  postData url, data, auth, (err, res) ->
+    if err
+      robot.logger.error "Error creating a deployment task: " + title
+    else
+      robot.logger.info "Created a new deployment task: " + title
