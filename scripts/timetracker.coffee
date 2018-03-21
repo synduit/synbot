@@ -1,5 +1,5 @@
 # Description:
-#   Manage Tech debt and performance time activity via Hubot
+#   Track time spent on various activities via Hubot.
 #
 # Dependencies:
 #   None
@@ -26,23 +26,18 @@ module.exports = (robot) ->
     if period == 'hours' || period == 'hour' || period == 'hr'
       time = time * 60
 
-    #if username is not set create one.
+    # if username is not set, create one.
     if !timetrack[username]
       timetrack[username] = []
 
-    #if username of tasktype is not then set to 0.
+    # if tasktype a usernameis not set, then set to 0.
     if !timetrack[username][taskType]
       timetrack[username][taskType] = 0
 
-    #if username have already have added time for a task then update them.
-    if timetrack[username][taskType] == 0
-      timetrack[username][taskType] = time
-    else
-      timetrack[username][taskType] += time
-
+    # add the time.
+    timetrack[username][taskType] += time
     robot.brain.set('timetrack', timetrack)
-
-    msg.send "Thanks for contributing to  #{taskType} for #{time} minutes."
+    msg.send "Thanks for contributing to #{taskType} for #{time} minutes."
 
 
   robot.respond /report/i, (msg) ->
@@ -57,7 +52,7 @@ module.exports = (robot) ->
           totalHours[type] = task[type]
 
     for type,minutes of totalHours
-      msg.send "Total number of minutes worked on #{type} for #{minutes} minutes."
+      msg.send "#{type} : #{minutes} minutes."
 
   robot.respond /clear\s+timetrack\s+for\s+([\w]+)/i, (msg) ->
   # Command: clear timetrack for <username>
@@ -70,4 +65,3 @@ module.exports = (robot) ->
     robot.brain.set('timetrack', timetrack)
 
     msg.send "The records have been cleared for #{username}"
-
