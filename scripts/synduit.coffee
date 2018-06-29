@@ -9,8 +9,8 @@
 #   HUBOT_SYNDUIT_TOKEN
 #
 # Commands:
-#   hubot who is <subdomain>
-#   hubot cancel <subdomain>
+#   hubot who is <query>
+#   hubot cancel <query>
 #
 # Author:
 #   Mani Soundararajan
@@ -18,31 +18,31 @@
 
 module.exports = (robot) ->
 
-  # Command: hubot who is <subdomain>
+  # Command: hubot who is <query>
   robot.respond /who\s*is\s+([\w\W]+)/i, (msg) ->
-    subdomain = msg.match[1]
-    getUser msg, subdomain, (err, res) ->
+    query = msg.match[1]
+    getUser msg, query, (err, res) ->
       if err
         msg.send "Error getting info"
         console.log "Error getting info from Synduit: " + res
       else
         msg.send res
 
-  # Command: hubot cancel <subdomain>
+  # Command: hubot cancel <query>
   robot.respond /cancel\s+([\w\W]+)/i, (msg) ->
-    subdomain = msg.match[1]
-    cancelUser msg, subdomain, (err, res) ->
+    query = msg.match[1]
+    cancelUser msg, query, (err, res) ->
       if err
         msg.send "Error canceling user"
         console.log "Error canceling user from Synduit: " + res.statusCode
       else
         if res.statusCode == 204
-          msg.send subdomain + " is canceling"
+          msg.send query + " is canceling"
         else
           msg.send "Error canceling user from Synduit: " + res.statusCode
 
-getUser = (msg, subdomain, callback) ->
-  url = process.env.HUBOT_SYNDUIT_URL + "/v1/accounts/info?subdomain=" + subdomain
+getUser = (msg, query, callback) ->
+  url = process.env.HUBOT_SYNDUIT_URL + "/v1/accounts/info?query=" + query
   msg.http(url)
     .header('Authorization', process.env.HUBOT_SYNDUIT_TOKEN)
     .get() (err, res, body) ->
@@ -50,13 +50,13 @@ getUser = (msg, subdomain, callback) ->
         callback(err, res)
       else
         data = JSON.parse(body)
-        result = "Subdomain: " + subdomain + "\n" +
+        result = "Subdomain: " + data.subdomain + "\n" +
           "Name: " + data.fname + " " + data.lname + "\n" +
           "Email: " + data.mail
         callback(err, result)
 
-cancelUser = (msg, subdomain, callback) ->
-  url = process.env.HUBOT_SYNDUIT_URL + "/v1/accounts/cancel?subdomain=" + subdomain
+cancelUser = (msg, query, callback) ->
+  url = process.env.HUBOT_SYNDUIT_URL + "/v1/accounts/cancel?query=" + query
   msg.http(url)
     .header('Authorization', process.env.HUBOT_SYNDUIT_TOKEN)
     .header('Content-Type', 'application/json')
