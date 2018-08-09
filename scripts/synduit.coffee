@@ -52,7 +52,8 @@ getUser = (msg, query, callback) ->
         data = JSON.parse(body)
         result = "Subdomain: " + data.subdomain + "\n" +
           "Name: " + data.fname + " " + data.lname + "\n" +
-          "Email: " + data.mail
+          "Email: " + data.mail + "\n" +
+          "Referral URL: " + data.referral_url
         callback(err, result)
 
 cancelUser = (msg, query, callback) ->
