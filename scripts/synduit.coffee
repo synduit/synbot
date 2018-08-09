@@ -11,6 +11,7 @@
 # Commands:
 #   hubot who is <query>
 #   hubot cancel <query>
+#   hubot referral <query>
 #
 # Author:
 #   Mani Soundararajan
@@ -41,6 +42,16 @@ module.exports = (robot) ->
         else
           msg.send "Error canceling user from Synduit: " + res.statusCode
 
+  # Command: hubot referral <query>
+  robot.respond /refer[r]*al\s+([\w\W]+)/i, (msg) ->
+    query = msg.match[1]
+    getReferral msg, query, (err, res) ->
+      if err
+        msg.send "Error getting info"
+        console.log "Error getting info from Synduit: " + res
+      else
+        msg.send res
+
 getUser = (msg, query, callback) ->
   url = process.env.HUBOT_SYNDUIT_URL + "/v1/accounts/info?query=" + query
   msg.http(url)
@@ -53,6 +64,20 @@ getUser = (msg, query, callback) ->
         result = "Subdomain: " + data.subdomain + "\n" +
           "Name: " + data.fname + " " + data.lname + "\n" +
           "Email: " + data.mail
+        callback(err, result)
+
+getReferral = (msg, query, callback) ->
+  url = process.env.HUBOT_SYNDUIT_URL + "/v1/accounts/info?query=" + query
+  msg.http(url)
+    .header('Authorization', process.env.HUBOT_SYNDUIT_TOKEN)
+    .get() (err, res, body) ->
+      if err
+        callback(err, res)
+      else
+        data = JSON.parse(body)
+        result = "Subdomain: " + data.subdomain + "\n" +
+          "Email: " + data.mail + "\n" +
+          "Referral: " + data.referral_url
         callback(err, result)
 
 cancelUser = (msg, query, callback) ->
