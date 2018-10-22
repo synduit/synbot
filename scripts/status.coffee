@@ -34,6 +34,8 @@ getGithubStatus = (msg, callback) ->
           message = "*GitHub is fully oprational.*"
         else if data.status is "minor"
           message = "*GitHub is running into minor issues.*\nHere's what they say: _#{data.body}_"
-        if data.status is "major"
+        else if data.status is "major"
           message = "*GitHub is running into major issues.*\nHere's what they say: _#{data.body}_"
+        else
+          message  =  "I don't know the status of GitHub. Visit https://status.github.com for more info."
         callback(err, message)
