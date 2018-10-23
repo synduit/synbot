@@ -34,13 +34,13 @@ module.exports = (robot) ->
     query = msg.match[1]
     cancelUser msg, query, (err, res) ->
       if err
-        msg.send "Error canceling user"
-        console.log "Error canceling user from Synduit: " + res.statusCode
+        msg.send "Error canceling *" + query + "*"
+        console.log "Error canceling " + query + " from Synduit: " + res.statusCode
       else
         if res.statusCode == 204
           msg.send query + " is canceling"
         else
-          msg.send "Error canceling user from Synduit: " + res.statusCode
+          msg.send "Error canceling *" + query + "* from Synduit: " + res.statusCode
 
   # Command: hubot referral <query>
   robot.respond /refer[r]*al\s+([\w\W]+)/i, (msg) ->
