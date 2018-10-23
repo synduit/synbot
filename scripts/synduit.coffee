@@ -34,7 +34,7 @@ module.exports = (robot) ->
     query = msg.match[1]
     cancelUser msg, query, (err, res) ->
       if err
-        msg.send "Error canceling " + query
+        msg.send "Error canceling *" + query + "*"
         console.log "Error canceling " + query + " from Synduit: " + res.statusCode
       else
         if res.statusCode == 204
