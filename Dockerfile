@@ -1,4 +1,4 @@
-FROM node:0.10.48-slim
+FROM node:10-slim
 
 COPY . /synbot
 
